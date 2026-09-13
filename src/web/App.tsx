@@ -266,7 +266,7 @@ function StartScreen(props: { hasSave: boolean; onNew: () => void; onContinue: (
           </button>
         </div>
         <div className="panel">
-          <h3>当前启用角色池（8 名首发）</h3>
+          <h3>当前启用角色池（8 名首发，实际 {DEMO_POOL.length}）</h3>
           <div className="pool">
             {DEMO_POOL.map((c) => (
               <div className="pool-item" key={c.characterId}>

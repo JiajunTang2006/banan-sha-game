@@ -5,6 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#141110" />
     <title>八男杀 · 网页试玩 Demo</title>
+    <script>
+      /* 错误探针：把未捕获的错误与资源加载失败显示到页面底部，便于在无法打开控制台的设备上定位问题。 */
+      (function () {
+        function show(msg) {
+          try {
+            var box = document.getElementById('__diag');
+            if (!box) {
+              box = document.createElement('div');
+              box.id = '__diag';
+              box.style.cssText =
+                'position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#7f1d1d;color:#fff;' +
+                'font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;padding:8px 12px;white-space:pre-wrap;' +
+                'word-break:break-word;max-height:45vh;overflow:auto;border-top:2px solid #fca5a5';
+              (document.body || document.documentElement).appendChild(box);
+            }
+            box.textContent += (box.textContent ? '\n' : '') + msg;
+          } catch (e) {}
+        }
+        window.__diagShow = show;
+        window.addEventListener(
+          'error',
+          function (e) {
+            var t = e.target;
+            if (t && t !== window && t.tagName) {
+              show('[resource] ' + t.tagName + ' 加载失败：' + (t.src || t.href || '?'));
+              return;
+            }
+            show('[error] ' + (e.message || e.error) + ' @' + (e.filename || '?') + ':' + (e.lineno || 0));
+          },
+          true,
+        );
+        window.addEventListener('unhandledrejection', function (e) {
+          var r = e.reason;
+          show('[rejection] ' + ((r && (r.stack || r.message)) || String(r)));
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

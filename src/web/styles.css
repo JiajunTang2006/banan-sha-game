@@ -290,6 +290,16 @@ button {
   flex-wrap: wrap;
   justify-content: center;
 }
+.draft-error {
+  max-width: 660px;
+  text-align: left;
+  border: 1px dashed #fca5a5;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #fca5a5;
+  font: 12px/1.75 ui-monospace, Menlo, Consolas, monospace;
+  word-break: break-word;
+}
 .char-card {
   width: 244px;
   border: 1px solid var(--line-2);

@@ -74,7 +74,7 @@ const server = createServer(async (req, res) => {
     const body = await readFile(file);
     res.writeHead(200, {
       'content-type': MIME[extname(file)] ?? 'application/octet-stream',
-      'cache-control': extname(file) === '.html' ? 'no-cache' : 'public, max-age=31536000, immutable',
+      'cache-control': extname(file) === '.html' ? 'no-store' : 'public, max-age=31536000, immutable',
     });
     res.end(body);
   } catch (err) {
