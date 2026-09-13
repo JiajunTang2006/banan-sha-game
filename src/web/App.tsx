@@ -43,6 +43,7 @@ export default function App() {
 
   const clientRef = useRef<GameClient | null>(null);
   const startedAt = useRef<number>(Date.now());
+  const resultGameId = useRef<string | null>(null);
 
   const flash = useCallback((text: string) => setToast({ text, key: Date.now() }), []);
 
@@ -150,7 +151,8 @@ export default function App() {
 
   useEffect(() => {
     if (screen !== 'game' || !view) return;
-    if (view.status === 'finished' && view.winner && !result) {
+    if (view.status === 'finished' && view.winner && !result && resultGameId.current !== view.gameId) {
+      resultGameId.current = view.gameId;
       const camp = view.winner;
       const myRole = view.knownRoles[view.selfSeat];
       const selfWin =
@@ -388,6 +390,16 @@ function GameTable(props: {
     return acts.filter((a) => a.cardIds.length > 0 && a.cardIds.length === set.size && a.cardIds.every((id) => set.has(id)));
   }, [view.actions, selected, isMyPlay]);
 
+  // 可用性必须来自完整动作集合，不能来自当前尚未选牌的过滤结果。
+  const usableCardIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (!isMyPlay) return ids;
+    for (const action of view.actions) {
+      if (!action.note) action.cardIds.forEach((id) => ids.add(id));
+    }
+    return ids;
+  }, [view.actions, isMyPlay]);
+
   const toggleCard = (id: string) => {
     setActive(null);
     setTargets([]);
@@ -444,7 +456,7 @@ function GameTable(props: {
               targetable={Boolean(active?.targetSpec?.legal.includes(p.seat))}
               chosen={targets.includes(p.seat)}
               onToggle={() => {
-                if (!active?.targetSpec) return;
+                if (!active?.targetSpec || !active.targetSpec.legal.includes(p.seat)) return;
                 setTargets((prev) => {
                   if (prev.includes(p.seat)) return prev.filter((x) => x !== p.seat);
                   if (prev.length >= active.targetSpec!.max) return prev;
@@ -453,6 +465,12 @@ function GameTable(props: {
               }}
             />
           ))}
+        </div>
+
+        <div className="arena-status" aria-live="polite">
+          <span className="arena-kicker">第 {view.turn.round} 轮 · {PHASE_LABEL[view.turn.phase ?? ''] ?? '准备'}</span>
+          <strong>{view.pending?.title ?? `当前：${view.players.find((x) => x.seat === view.turn.currentSeat)?.displayName ?? '—'}`}</strong>
+          <span>{view.pending?.detail ?? '牌桌信息与最近结算会显示在这里'}</span>
         </div>
 
         <div className="table-center">
@@ -482,14 +500,13 @@ function GameTable(props: {
           )}
           <div className="hand">
             {view.hand.map((c) => {
-              const usable = isMyPlay && filtered.some((a) => a.cardIds.length === 1 && a.cardIds[0] === c.id);
               return (
                 <HandCard
                   key={c.id}
                   c={c}
                   selected={selected.includes(c.id)}
                   selectable={isMyPlay}
-                  dim={isMyPlay && selected.length === 0 && !usable}
+                  dim={isMyPlay && !usableCardIds.has(c.id)}
                   badge={selected.indexOf(c.id) >= 0 ? selected.indexOf(c.id) + 1 : undefined}
                   onClick={() => isMyPlay && toggleCard(c.id)}
                 />
@@ -580,20 +597,30 @@ function choiceFor(a: ActionDescriptor): Record<string, unknown> {
 
 function SelfBar({ p, current, phase }: { p: PlayerViewItem; current: boolean; phase: string | null }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-      <span style={{ color: 'var(--gold-2)', fontWeight: 600 }}>
+    <div className="self-status">
+      <span className="self-name">
         {p.displayName} · {p.characterName}
       </span>
       <HpPips hp={p.hp} maxHp={p.maxHp} />
       <span className="muted small">手牌 {p.handCount}</span>
       {p.role && <span className="tag gold">{ROLE_LABEL[p.role]}</span>}
       {current && phase && <span className="tag red">我的{PHASE_LABEL[phase] ?? ''}阶段</span>}
-      <span className="skill-bar">
+      <span className="skill-bar" aria-label="我的技能">
         {p.skills.map((s) => (
           <span className="skill-chip" key={s.skillId}>
             {s.name}
           </span>
         ))}
+      </span>
+      <span className="self-zones" aria-label="我的装备与判定区">
+        {Object.entries(p.equip).map(([slot, e]) => (
+          <span className={`equip-chip ${slot === 'armor' ? 'armor' : slot === 'weapon' ? 'weapon' : ''}`} key={slot}>
+            {e!.name}
+          </span>
+        ))}
+        {p.judgeNames.map((name, i) => <span className="equip-chip judge" key={`${name}-${i}`}>{name}</span>)}
+        {p.caiCount > 0 && <span className="equip-chip">财 {p.caiCount}</span>}
+        {Object.keys(p.equip).length === 0 && p.judgeNames.length === 0 && p.caiCount === 0 && <span className="muted small">装备区空</span>}
       </span>
       {p.marks.map((m) => (
         <span className="tag" key={m.key}>
@@ -636,7 +663,18 @@ function SeatCard(props: {
     .filter(Boolean)
     .join(' ');
   return (
-    <div className={cls} onClick={props.onToggle}>
+    <div
+      className={cls}
+      onClick={props.onToggle}
+      role={props.targetable ? 'button' : undefined}
+      tabIndex={props.targetable ? 0 : -1}
+      onKeyDown={(event) => {
+        if (props.targetable && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          props.onToggle();
+        }
+      }}
+    >
       <div className="seat-head">
         <span className="seat-name">
           <span className="seat-char">{p.characterName}</span> {p.displayName}
@@ -696,6 +734,15 @@ function HandCard(props: {
     <div
       className={cls}
       onClick={props.onClick}
+      role={props.selectable ? 'button' : undefined}
+      tabIndex={props.selectable ? 0 : -1}
+      aria-pressed={props.selected}
+      onKeyDown={(event) => {
+        if (props.selectable && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          props.onClick();
+        }
+      }}
     >
       {props.badge && <span className="badge">{props.badge}</span>}
       <div className="corner">
@@ -946,9 +993,17 @@ function ResultModal(props: {
 
 function RulesModal(props: { onClose: () => void }) {
   const [tab, setTab] = useState<'cards' | 'chars'>('cards');
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') props.onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [props.onClose]);
   return (
     <div className="overlay">
       <div className="modal">
+        <button className="modal-close" aria-label="关闭规则图鉴" onClick={props.onClose}>×</button>
         <h3>规则图鉴 · v0.9.1 实现基线</h3>
         <div className="detail">牌面与角色文案用于查阅；实际裁定以本局引擎为准。</div>
         <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>

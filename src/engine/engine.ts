@@ -98,7 +98,7 @@ export function projectForPlayer(state: GameState, seat: number): PlayerView {
   const me = player(state, seat);
   const knownRoles: Record<number, RoleId> = {};
   for (const p of state.players) {
-    if (p.seat === seat || p.roleRevealed || !p.alive) knownRoles[p.seat] = p.role;
+    if (state.status === 'finished' || p.seat === seat || p.roleRevealed || !p.alive) knownRoles[p.seat] = p.role;
   }
 
   const players: PlayerViewItem[] = state.players.map((p) => viewItem(state, p, seat));
@@ -192,7 +192,7 @@ function viewItem(state: GameState, p: PlayerState, selfSeat: number): PlayerVie
     judgeCount: p.judge.length,
     judgeNames: p.judge.map((id) => card(state, id).name),
     caiCount: p.cai.length,
-    role: p.seat === selfSeat || p.roleRevealed || !p.alive ? p.role : null,
+    role: state.status === 'finished' || p.seat === selfSeat || p.roleRevealed || !p.alive ? p.role : null,
     isSelf: p.seat === selfSeat,
     control: p.control,
     skills: ch.skills.map((s) => ({ skillId: s.skillId, name: s.name })),
