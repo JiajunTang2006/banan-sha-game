@@ -253,6 +253,7 @@ function StartScreen(props: { hasSave: boolean; onNew: () => void; onContinue: (
       <div className="start-inner">
         <h1 className="title">八男杀</h1>
         <div className="subtitle">网页试玩 Demo · 第一阶段 · 规则由程序裁定</div>
+        <div className="start-seal">八男</div>
         <div className="start-actions">
           <button className="btn primary" onClick={props.onNew}>
             新游戏（1 人对 4 名电脑）
@@ -466,9 +467,12 @@ function GameTable(props: {
               </span>
             ))}
           </div>
-          <span className="muted">
-            牌堆 {view.discardTop.length > 0 ? '' : ''}
-            {view.log.length > 0 ? '' : ''}
+          <span className="muted small">
+            {view.discardTop.length > 0
+              ? `弃牌堆顶：${view.discardTop.slice(0, 3).map((c) => c.name).join('、')}${
+                  view.discardTop.length > 3 ? ` 等 ${view.discardTop.length} 张` : ''
+                }`
+              : '弃牌堆为空'}
           </span>
         </div>
 
@@ -689,7 +693,10 @@ function HandCard(props: {
     .filter(Boolean)
     .join(' ');
   return (
-    <div className={cls} onClick={props.onClick}>
+    <div
+      className={cls}
+      onClick={props.onClick}
+    >
       {props.badge && <span className="badge">{props.badge}</span>}
       <div className="corner">
         <span>{c.suit}</span>
@@ -892,6 +899,7 @@ function ResultModal(props: {
         <div className="result">
           <div className="big">{WIN_TEXT[result.winner] ?? result.winner}</div>
           <div className={result.selfWin ? 'tag green' : 'tag red'}>{result.selfWin ? '你获胜' : '你落败'}</div>
+          <div className={`stamp ${result.selfWin ? 'win' : 'lose'}`}>{result.selfWin ? '胜' : '负'}</div>
         </div>
         <div className="stats">
           <div className="stat">
