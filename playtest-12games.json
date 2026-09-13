@@ -1,0 +1,14 @@
+[
+  { "no": 1, "char": "唐嘉均", "winner": "主公·忠臣获胜", "selfWin": false, "time": "00:01", "rounds": 5, "alive": 2 },
+  { "no": 2, "char": "刘禹韬", "winner": "主公·忠臣获胜", "selfWin": false, "time": "00:17", "rounds": 13, "alive": 1 },
+  { "no": 3, "char": "陈越来", "winner": "反贼获胜", "selfWin": false, "time": "00:17", "rounds": 1, "alive": 4 },
+  { "no": 4, "char": "巫力凡", "winner": "主公·忠臣获胜", "selfWin": false, "time": "00:01", "rounds": 3, "alive": 2 },
+  { "no": 5, "char": "陈越来", "winner": "主公·忠臣获胜", "selfWin": false, "time": "00:17", "rounds": 5, "alive": 2 },
+  { "no": 6, "char": "王清阳", "winner": "反贼获胜", "selfWin": true, "time": "00:16", "rounds": 5, "alive": 2 },
+  { "no": 7, "char": "顾元昊", "winner": "反贼获胜", "selfWin": false, "time": "00:49", "rounds": 3, "alive": 3 },
+  { "no": 8, "char": "唐嘉均", "winner": "反贼获胜", "selfWin": true, "time": "00:17", "rounds": 5, "alive": 2 },
+  { "no": 9, "char": "程俊铭", "winner": "反贼获胜", "selfWin": true, "time": "00:03", "rounds": 1, "alive": 3 },
+  { "no": 10, "char": "钱亦文", "winner": "反贼获胜", "selfWin": false, "time": "00:17", "rounds": 6, "alive": 3 },
+  { "no": 11, "char": "巫力凡", "winner": "反贼获胜", "selfWin": false, "time": "00:48", "rounds": 3, "alive": 4 },
+  { "no": 12, "char": "唐嘉均", "winner": "反贼获胜", "selfWin": false, "time": "00:01", "rounds": 2, "alive": 2 }
+]
